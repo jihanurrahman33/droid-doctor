@@ -1,6 +1,6 @@
 # droid_doctor
 
-Finds and explains **Gradle, Android Gradle Plugin (AGP), Kotlin and JDK
+Finds, explains and fixes **Gradle, Android Gradle Plugin (AGP), Kotlin and JDK
 version problems** in the Android build of Flutter projects, before
 `flutter build apk` fails with a cryptic error.
 
@@ -86,6 +86,45 @@ Apply 6 changes to 3 files? [y/N]
   edited after the fix unless you add `--force`.
 - Exit code: 0 when no errors remain afterwards, 1 otherwise.
 
+### Explaining a failed build
+
+```sh
+flutter build apk 2>&1 | droid_doctor explain -
+droid_doctor explain build.log
+```
+
+```console
+1. Module :uni_links has no namespace  (line 26)
+   > > Namespace not specified. Specify a namespace in the module's build file: ...
+   cause: Android Gradle Plugin 8+ requires every module to declare `namespace` in its build file.
+   fix:   Upgrade or replace the plugin uni_links; `droid_doctor plugins` shows newer or replacement packages.
+```
+
+Recognizes 23 common errors: Gradle/AGP/Kotlin/JDK version mismatches,
+JVM target mismatches, missing namespaces, minSdk/compileSdk conflicts,
+duplicate Kotlin classes, SDK/NDK/license problems, out-of-memory, missing
+plugins and dependencies. Errors `fix` can resolve are marked `auto`. Exits 1
+when nothing is recognized. `--json` is available.
+
+### Auditing plugins
+
+```sh
+droid_doctor plugins
+```
+
+```console
+uni_links 0.5.1  (discontinued)
+  error    No namespace; AGP 8.11.1 fails with "Namespace not specified".
+           fix: uni_links is discontinued; replace it with app_links.
+```
+
+Reads the resolved dependencies (run `flutter pub get` first) and checks each
+plugin's Android build against your app: missing AGP 8 namespace, higher
+minSdk or compileSdk, Java/Kotlin JVM target mismatch, `jcenter()`, and Kotlin
+plugins under AGP built-in Kotlin. For problem plugins it asks pub.dev whether
+a newer version or a replacement exists (`--offline` to skip). `--json` and
+`--ci` work as in `check`.
+
 ### Exit codes
 
 | Code | Meaning |
@@ -126,8 +165,7 @@ dart run tool/embed_matrix.dart
 
 ## Roadmap
 
-- `explain`: turn a Gradle error log into a diagnosis and fix.
-- `plugins`: find the dependencies that block an upgrade.
+- `plan --flutter <version>`: what breaks before upgrading Flutter.
 - Data that updates itself weekly from upstream sources.
 
 ## License

@@ -18,3 +18,7 @@ export 'src/fix/edits.dart';
 export 'src/fix/planner.dart';
 export 'src/fix/solver.dart';
 export 'src/report/plan_reporter.dart';
+export 'src/explain/explainer.dart';
+export 'src/explain/patterns.dart';
+export 'src/plugins/plugin_auditor.dart';
+export 'src/plugins/pub_client.dart';

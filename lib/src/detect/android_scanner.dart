@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../model/finding.dart';
 import '../model/project_snapshot.dart';
 import '../model/version.dart';
+import 'gradle_patterns.dart';
 import 'source_text.dart';
 import 'version_catalog.dart';
 
@@ -93,39 +94,15 @@ final class AndroidScanner {
             multiLine: true,
           )) ??
           false,
-      namespace: _detected(appBuild?.find([
-        RegExp(r'''\bnamespace\s*=?\s*["']([^"']+)["']'''),
-      ])),
-      applicationId: _detected(appBuild?.find([
-        RegExp(r'''\bapplicationId\s*=?\s*["']([^"']+)["']'''),
-      ])),
-      compileSdk: _version(
-        appBuild?.find([RegExp(r'\bcompileSdk(?:Version)?\s*[=(]?\s*(\d+)\b')]),
-        int.tryParse,
-      ),
-      minSdk: _version(
-        appBuild?.find([RegExp(r'\bminSdk(?:Version)?\s*[=(]?\s*(\d+)\b')]),
-        int.tryParse,
-      ),
-      javaTarget: _version(
-        appBuild?.find([
-          RegExp(
-              r'\btargetCompatibility\s*=?\s*JavaVersion\.VERSION_(\d+(?:_\d+)?)'),
-          RegExp(r'''\btargetCompatibility\s*=?\s*["']?(\d+(?:\.\d+)?)\b'''),
-        ]),
-        parseJavaVersion,
-      ),
+      namespace: _detected(appBuild?.find(GradlePatterns.namespace)),
+      applicationId: _detected(appBuild?.find(GradlePatterns.applicationId)),
+      compileSdk:
+          _version(appBuild?.find(GradlePatterns.compileSdk), int.tryParse),
+      minSdk: _version(appBuild?.find(GradlePatterns.minSdk), int.tryParse),
+      javaTarget:
+          _version(appBuild?.find(GradlePatterns.javaTarget), parseJavaVersion),
       kotlinJvmTarget: _version(
-        appBuild?.find([
-          RegExp(
-              r'\bjvmTarget\s*(?:=|\.set\()\s*[\w.]*JvmTarget\.JVM_(\d+(?:_\d+)?)'),
-          RegExp(
-              r'\bjvmTarget\s*(?:=|\.set\()\s*JavaVersion\.VERSION_(\d+(?:_\d+)?)'),
-          RegExp(r'''\bjvmTarget\s*(?:=|\.set\()\s*["'](\d+(?:\.\d+)?)["']'''),
-          RegExp(r'\bjvmToolchain\s*\(?\s*(\d+)'),
-        ]),
-        parseJavaVersion,
-      ),
+          appBuild?.find(GradlePatterns.kotlinJvmTarget), parseJavaVersion),
       appBuildFile: appBuild?.relativePath,
     );
   }

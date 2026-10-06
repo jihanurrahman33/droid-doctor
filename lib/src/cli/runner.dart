@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -9,9 +10,12 @@ import '../detect/environment.dart';
 import '../model/finding.dart';
 import '../model/project_snapshot.dart';
 import '../model/version.dart';
+import '../plugins/pub_client.dart';
 import '../report/reporters.dart';
 import '../rules/rule.dart';
+import 'explain_command.dart';
 import 'fix_command.dart';
+import 'plugins_command.dart';
 import 'version.dart';
 
 /// Process exit codes.
@@ -31,6 +35,9 @@ final class CliContext {
     required this.color,
     required this.interactive,
     required this.readLine,
+    required this.stdinIsTerminal,
+    required this.readStdin,
+    required this.packageInfo,
   });
 
   final EnvironmentProbe probe;
@@ -41,6 +48,11 @@ final class CliContext {
   /// Whether the user can answer prompts.
   final bool interactive;
   final String? Function() readLine;
+
+  /// Whether stdin is a terminal (nothing piped in).
+  final bool stdinIsTerminal;
+  final Future<String> Function() readStdin;
+  final PackageLookup packageInfo;
 }
 
 /// Runs droid_doctor with [arguments] and returns the exit code. `check` is
@@ -53,6 +65,9 @@ Future<int> runDroidDoctor(
   bool? color,
   bool? interactive,
   String? Function()? readLine,
+  bool? stdinIsTerminal,
+  Future<String> Function()? readStdin,
+  PackageLookup? packageInfo,
 }) {
   final context = CliContext(
     probe: probe ?? EnvironmentProbe(),
@@ -62,6 +77,10 @@ Future<int> runDroidDoctor(
     interactive:
         interactive ?? (out == null && stdin.hasTerminal && stdout.hasTerminal),
     readLine: readLine ?? stdin.readLineSync,
+    stdinIsTerminal: stdinIsTerminal ?? stdin.hasTerminal,
+    readStdin: readStdin ??
+        () => stdin.transform(const Utf8Decoder(allowMalformed: true)).join(),
+    packageInfo: packageInfo ?? pubDevPackageInfo,
   );
   final runner = DroidDoctorRunner(context);
   final isTopLevel = arguments.isNotEmpty &&
@@ -81,6 +100,8 @@ final class DroidDoctorRunner extends CommandRunner<int> {
         negatable: false, help: 'Print the droid_doctor version.');
     addCommand(CheckCommand(_context));
     addCommand(FixCommand(_context));
+    addCommand(ExplainCommand(_context));
+    addCommand(PluginsCommand(_context));
   }
 
   final CliContext _context;

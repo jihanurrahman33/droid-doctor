@@ -1,3 +1,15 @@
+## 0.3.0
+
+- New `droid_doctor explain <log | ->`: recognizes 23 common Gradle, AGP,
+  Kotlin, JDK, SDK and Flutter build errors and explains the cause and fix,
+  using the versions in the log. Tested against real `flutter build` logs.
+  Pipe a build straight in: `flutter build apk 2>&1 | droid_doctor explain -`.
+- New `droid_doctor plugins`: audits every Android plugin the app depends on
+  for missing AGP 8 namespaces, higher minSdk/compileSdk than the app,
+  Java/Kotlin JVM target mismatches, `jcenter()`, and Kotlin plugins under
+  AGP built-in Kotlin. Looks up pub.dev for newer versions and discontinued
+  packages' replacements (`--offline` to skip).
+
 ## 0.2.0
 
 - New `droid_doctor fix` command: picks compatible Gradle, AGP and Kotlin

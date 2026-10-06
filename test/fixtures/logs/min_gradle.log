@@ -1,0 +1,21 @@
+Running Gradle task 'assembleDebug'...                          
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/dev/my_app/android/app/build.gradle.kts' line: 1
+
+* What went wrong:
+An exception occurred applying plugin request [id: 'com.android.application']
+> Failed to apply plugin 'com.android.internal.version-check'.
+   > Minimum supported Gradle version is 8.9. Current version is 8.3. If using the gradle wrapper, try editing the distributionUrl in /home/dev/my_app/android/gradle/wrapper/gradle-wrapper.properties to gradle-8.9-all.zip
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2s
+Running Gradle task 'assembleDebug'...                              3.3s
+Gradle task assembleDebug failed with exit code 1

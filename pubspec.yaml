@@ -2,7 +2,7 @@ name: droid_doctor
 description: >-
   Finds, explains and fixes Gradle, Android Gradle Plugin, Kotlin and JDK
   version mismatches in the Android build of Flutter projects.
-version: 0.2.0
+version: 0.3.0
 topics: [android, gradle, flutter, kotlin, cli]
 
 environment:
