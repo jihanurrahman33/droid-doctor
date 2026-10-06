@@ -11,6 +11,7 @@ import '../model/project_snapshot.dart';
 import '../model/version.dart';
 import '../report/reporters.dart';
 import '../rules/rule.dart';
+import 'fix_command.dart';
 import 'version.dart';
 
 /// Process exit codes.
@@ -21,6 +22,27 @@ abstract final class ExitCode {
   static const internal = 3;
 }
 
+/// I/O and environment shared by all commands; injectable for tests.
+final class CliContext {
+  CliContext({
+    required this.probe,
+    required this.out,
+    required this.err,
+    required this.color,
+    required this.interactive,
+    required this.readLine,
+  });
+
+  final EnvironmentProbe probe;
+  final StringSink out;
+  final StringSink err;
+  final bool color;
+
+  /// Whether the user can answer prompts.
+  final bool interactive;
+  final String? Function() readLine;
+}
+
 /// Runs droid_doctor with [arguments] and returns the exit code. `check` is
 /// the default command.
 Future<int> runDroidDoctor(
@@ -29,14 +51,19 @@ Future<int> runDroidDoctor(
   StringSink? out,
   StringSink? err,
   bool? color,
+  bool? interactive,
+  String? Function()? readLine,
 }) {
-  final stdoutSink = out ?? stdout;
-  final runner = DroidDoctorRunner(
+  final context = CliContext(
     probe: probe ?? EnvironmentProbe(),
-    out: stdoutSink,
+    out: out ?? stdout,
     err: err ?? stderr,
     color: color ?? (out == null && stdout.supportsAnsiEscapes),
+    interactive:
+        interactive ?? (out == null && stdin.hasTerminal && stdout.hasTerminal),
+    readLine: readLine ?? stdin.readLineSync,
   );
+  final runner = DroidDoctorRunner(context);
   final isTopLevel = arguments.isNotEmpty &&
       (runner.commands.containsKey(arguments.first) ||
           const {'-h', '--help', '--version'}.contains(arguments.first));
@@ -44,64 +71,48 @@ Future<int> runDroidDoctor(
 }
 
 final class DroidDoctorRunner extends CommandRunner<int> {
-  DroidDoctorRunner({
-    required EnvironmentProbe probe,
-    required StringSink out,
-    required StringSink err,
-    required bool color,
-  })  : _out = out,
-        _err = err,
-        super(
+  DroidDoctorRunner(this._context)
+      : super(
           'droid_doctor',
-          'Finds and explains Gradle, AGP, Kotlin and JDK version problems in '
+          'Finds and fixes Gradle, AGP, Kotlin and JDK version problems in '
               "a Flutter project's Android build.",
         ) {
     argParser.addFlag('version',
         negatable: false, help: 'Print the droid_doctor version.');
-    addCommand(CheckCommand(probe: probe, out: out, err: err, color: color));
+    addCommand(CheckCommand(_context));
+    addCommand(FixCommand(_context));
   }
 
-  final StringSink _out;
-  final StringSink _err;
+  final CliContext _context;
 
   @override
-  void printUsage() => _out.writeln(usage);
+  void printUsage() => _context.out.writeln(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
     try {
       final results = parse(args);
       if (results.flag('version')) {
-        _out.writeln('droid_doctor $packageVersion');
+        _context.out.writeln('droid_doctor $packageVersion');
         return ExitCode.ok;
       }
       return await runCommand(results) ?? ExitCode.ok;
     } on UsageException catch (e) {
-      _err.writeln(e);
+      _context.err.writeln(e);
       return ExitCode.usage;
     }
   }
 }
 
-final class CheckCommand extends Command<int> {
-  CheckCommand({
-    required EnvironmentProbe probe,
-    required StringSink out,
-    required StringSink err,
-    required bool color,
-  })  : _probe = probe,
-        _out = out,
-        _err = err,
-        _color = color {
+/// A command that inspects a project: shares the project, environment and
+/// matrix options.
+abstract class ProjectCommand extends Command<int> {
+  ProjectCommand(this.context) {
     argParser
       ..addOption('project',
           abbr: 'p',
           help: 'Flutter project root or its android/ directory.',
           defaultsTo: '.')
-      ..addFlag('json', negatable: false, help: 'Print JSON output.')
-      ..addFlag('ci',
-          negatable: false,
-          help: 'Exit with code 1 on warnings too, and disable colors.')
       ..addFlag('color', help: 'Force colored output on or off.')
       ..addOption('flutter-version',
           help: 'Use this Flutter version instead of running `flutter`.',
@@ -115,10 +126,72 @@ final class CheckCommand extends Command<int> {
           valueHelp: 'path');
   }
 
-  final EnvironmentProbe _probe;
-  final StringSink _out;
-  final StringSink _err;
-  final bool _color;
+  final CliContext context;
+
+  ArgResults get args => argResults!;
+
+  bool get color =>
+      args.wasParsed('color') ? args.flag('color') : context.color;
+
+  CompatMatrix loadMatrix() {
+    final path = args.option('matrix');
+    if (path == null) return CompatMatrix.bundled();
+    final file = File(path);
+    if (!file.existsSync()) usageException('Matrix file not found: $path');
+    try {
+      return CompatMatrix.parse(file.readAsStringSync());
+    } on FormatException catch (e) {
+      usageException('Invalid matrix $path: ${e.message}');
+    }
+  }
+
+  /// Scans the project with the detected (or overridden) environment.
+  /// Returns null after reporting if there is no Android project.
+  Future<ProjectSnapshot?> scanProject() async {
+    final flutter = _override('flutter-version', Version.tryParse) ??
+        await context.probe.flutterVersion();
+    final java = _override('java-version', parseJavaVersion) ??
+        await context.probe.java();
+    return rescan(flutter: flutter, java: java);
+  }
+
+  /// Scans again with an already-known environment (e.g. after a fix).
+  ProjectSnapshot? rescan({
+    Detected<Version>? flutter,
+    Detected<Version>? java,
+  }) {
+    try {
+      return const AndroidScanner().scan(
+        args.option('project')!,
+        flutter: flutter,
+        java: java,
+      );
+    } on ProjectNotFoundException catch (e) {
+      context.err.writeln(e);
+      return null;
+    }
+  }
+
+  Detected<Version>? _override(
+    String option,
+    Version? Function(String) parse,
+  ) {
+    final raw = args.option(option);
+    if (raw == null) return null;
+    final version = parse(raw);
+    if (version == null) usageException('Invalid --$option: "$raw"');
+    return Detected(version, origin: '--$option');
+  }
+}
+
+final class CheckCommand extends ProjectCommand {
+  CheckCommand(super.context) {
+    argParser
+      ..addFlag('json', negatable: false, help: 'Print JSON output.')
+      ..addFlag('ci',
+          negatable: false,
+          help: 'Exit with code 1 on warnings too, and disable colors.');
+  }
 
   @override
   String get name => 'check';
@@ -129,66 +202,23 @@ final class CheckCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final args = argResults!;
-    final matrix = _loadMatrix(args.option('matrix'));
-    final flutter = _override(args, 'flutter-version', Version.tryParse) ??
-        await _probe.flutterVersion();
-    final java = _override(args, 'java-version', parseJavaVersion) ??
-        await _probe.java();
-
-    final ProjectSnapshot project;
-    try {
-      project = const AndroidScanner().scan(
-        args.option('project')!,
-        flutter: flutter,
-        java: java,
-      );
-    } on ProjectNotFoundException catch (e) {
-      _err.writeln(e);
-      return ExitCode.usage;
-    }
+    final matrix = loadMatrix();
+    final project = await scanProject();
+    if (project == null) return ExitCode.usage;
     final result = CheckResult(
       project: project,
       findings: checkProject(project, matrix),
       matrix: matrix,
-      notes: _probe.notes,
+      notes: context.probe.notes,
     );
 
     final ci = args.flag('ci');
-    _out.write(args.flag('json')
+    context.out.write(args.flag('json')
         ? '${renderJson(result, toolVersion: packageVersion)}\n'
-        : renderText(
-            result,
-            toolVersion: packageVersion,
-            color:
-                !ci && (args.wasParsed('color') ? args.flag('color') : _color),
-          ));
+        : renderText(result, toolVersion: packageVersion, color: !ci && color));
 
     final failing = result.count(Severity.error) +
         (ci ? result.count(Severity.warning) : 0);
     return failing > 0 ? ExitCode.problems : ExitCode.ok;
-  }
-
-  Detected<Version>? _override(
-    ArgResults args,
-    String option,
-    Version? Function(String) parse,
-  ) {
-    final raw = args.option(option);
-    if (raw == null) return null;
-    final version = parse(raw);
-    if (version == null) usageException('Invalid --$option: "$raw"');
-    return Detected(version, origin: '--$option');
-  }
-
-  CompatMatrix _loadMatrix(String? path) {
-    if (path == null) return CompatMatrix.bundled();
-    final file = File(path);
-    if (!file.existsSync()) usageException('Matrix file not found: $path');
-    try {
-      return CompatMatrix.parse(file.readAsStringSync());
-    } on FormatException catch (e) {
-      usageException('Invalid matrix $path: ${e.message}');
-    }
   }
 }

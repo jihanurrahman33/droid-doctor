@@ -28,6 +28,7 @@ final class ProjectSnapshot {
     this.pluginApplyStyle = PluginApplyStyle.unknown,
     this.builtInKotlin = false,
     this.namespace,
+    this.applicationId,
     this.compileSdk,
     this.minSdk,
     this.javaTarget,
@@ -48,6 +49,7 @@ final class ProjectSnapshot {
   /// makes the separate Kotlin Gradle plugin unnecessary.
   final bool builtInKotlin;
   final Detected<String>? namespace;
+  final Detected<String>? applicationId;
 
   /// Literal values only; null when delegated to `flutter.compileSdkVersion`
   /// and friends.
@@ -62,6 +64,34 @@ final class ProjectSnapshot {
 
   /// The app module build file, relative to [projectPath].
   final String? appBuildFile;
+
+  /// A copy with different toolchain versions, for evaluating "what if"
+  /// upgrades. A null argument keeps the current value.
+  ProjectSnapshot withVersions({
+    Detected<Version>? gradle,
+    Detected<Version>? agp,
+    Detected<Version>? kgp,
+    bool clearJava = false,
+    bool clearMinSdk = false,
+  }) =>
+      ProjectSnapshot(
+        projectPath: projectPath,
+        dsl: dsl,
+        flutter: flutter,
+        java: clearJava ? null : java,
+        gradle: gradle ?? this.gradle,
+        agp: agp ?? this.agp,
+        kgp: kgp ?? this.kgp,
+        pluginApplyStyle: pluginApplyStyle,
+        builtInKotlin: builtInKotlin,
+        namespace: namespace,
+        applicationId: applicationId,
+        compileSdk: compileSdk,
+        minSdk: clearMinSdk ? null : minSdk,
+        javaTarget: javaTarget,
+        kotlinJvmTarget: kotlinJvmTarget,
+        appBuildFile: appBuildFile,
+      );
 
   Detected<Version>? version(Component component) => switch (component) {
         Component.java => java,
@@ -86,6 +116,7 @@ final class ProjectSnapshot {
       'pluginApplyStyle': pluginApplyStyle.name,
       'builtInKotlin': builtInKotlin,
       'namespace': entry(namespace),
+      'applicationId': entry(applicationId),
       'compileSdk': entry(compileSdk),
       'minSdk': entry(minSdk),
       'javaTarget': entry(javaTarget),

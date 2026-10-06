@@ -48,6 +48,44 @@ droid_doctor --ci                 # also fail (exit 1) on warnings
 | `--java-version` | Skip JDK detection; use this version |
 | `--matrix` | Use a custom compatibility matrix JSON |
 
+### Fixing
+
+```sh
+droid_doctor fix                  # show the changes, ask, then apply
+droid_doctor fix --dry-run        # only show them
+droid_doctor fix --yes            # apply without asking (CI/scripts)
+droid_doctor fix --strategy latest  # upgrade to what `flutter create` uses
+droid_doctor fix --undo           # restore the files the last fix changed
+```
+
+```console
+Versions:
+  Gradle  8.3 → 8.14
+  AGP     8.7.0 → 8.11.1
+  KGP     1.9.0 → 2.2.20
+
+Changes:
+  android/settings.gradle.kts:22  Upgrade Android Gradle Plugin 8.7.0 → 8.11.1
+  - id("com.android.application") version "8.7.0" apply false
+  + id("com.android.application") version "8.11.1" apply false
+  ...
+Apply 6 changes to 3 files? [y/N]
+```
+
+- **`minimal`** (default) makes the smallest upgrades that fix every error.
+  **`latest`** moves to the newest known versions. Neither ever downgrades.
+- Besides versions, `fix` adds a missing AGP 8 `namespace`, aligns the Kotlin
+  `jvmTarget` with Java's, raises a too-low `minSdk`, and when crossing to
+  AGP 9 keeps the pre-AGP 9 defaults in `gradle.properties` (as
+  `flutter create` does).
+- Every edit is a single, verified line change. If a declaration doesn't look
+  exactly as expected, `fix` lists it as a **manual step** instead of
+  guessing; the JDK is never changed for you.
+- Changed files are backed up under `.dart_tool/droid_doctor/backups/` (already
+  git-ignored in Flutter projects). `fix --undo` refuses to overwrite files you
+  edited after the fix unless you add `--force`.
+- Exit code: 0 when no errors remain afterwards, 1 otherwise.
+
 ### Exit codes
 
 | Code | Meaning |
@@ -71,7 +109,7 @@ droid_doctor --ci                 # also fail (exit 1) on warnings
 
 It reads Kotlin DSL and Groovy build files, Gradle version catalogs
 (`libs.versions.toml`) and legacy `buildscript { classpath ... }` setups,
-ignoring commented-out code. It never modifies your project.
+ignoring commented-out code. `check` never modifies your project.
 
 The JDK is resolved the way Flutter resolves it: `flutter config --jdk-dir`,
 then Android Studio's bundled JBR, then `JAVA_HOME`, then `java` on `PATH`.
@@ -88,7 +126,6 @@ dart run tool/embed_matrix.dart
 
 ## Roadmap
 
-- `fix`: apply the suggested versions, with a diff, backup and undo.
 - `explain`: turn a Gradle error log into a diagnosis and fix.
 - `plugins`: find the dependencies that block an upgrade.
 - Data that updates itself weekly from upstream sources.

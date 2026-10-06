@@ -96,6 +96,9 @@ final class AndroidScanner {
       namespace: _detected(appBuild?.find([
         RegExp(r'''\bnamespace\s*=?\s*["']([^"']+)["']'''),
       ])),
+      applicationId: _detected(appBuild?.find([
+        RegExp(r'''\bapplicationId\s*=?\s*["']([^"']+)["']'''),
+      ])),
       compileSdk: _version(
         appBuild?.find([RegExp(r'\bcompileSdk(?:Version)?\s*[=(]?\s*(\d+)\b')]),
         int.tryParse,

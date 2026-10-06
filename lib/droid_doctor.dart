@@ -13,3 +13,8 @@ export 'src/model/project_snapshot.dart';
 export 'src/model/version.dart';
 export 'src/report/reporters.dart';
 export 'src/rules/rule.dart' show Rule, checkProject, defaultRules;
+export 'src/fix/applier.dart';
+export 'src/fix/edits.dart';
+export 'src/fix/planner.dart';
+export 'src/fix/solver.dart';
+export 'src/report/plan_reporter.dart';

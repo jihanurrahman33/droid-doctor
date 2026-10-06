@@ -72,6 +72,18 @@ final class EnvironmentProbe {
     return null;
   }
 
+  /// Whether git reports uncommitted changes under [projectPath]/android.
+  /// False when git is unavailable or this isn't a repository.
+  Future<bool> hasUncommittedChanges(String projectPath) async {
+    try {
+      final result = await _run(
+          'git', ['-C', projectPath, 'status', '--porcelain', '--', 'android']);
+      return result.exitCode == 0 && '${result.stdout}'.trim().isNotEmpty;
+    } on ProcessException {
+      return false;
+    }
+  }
+
   String _javaExecutable(String home) =>
       p.join(home, 'bin', _os == 'windows' ? 'java.exe' : 'java');
 

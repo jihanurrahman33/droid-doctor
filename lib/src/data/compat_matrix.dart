@@ -61,6 +61,7 @@ final class CompatMatrix {
   const CompatMatrix({
     required this.updated,
     required this.unknownFrom,
+    this.releases = const {},
     required this.rules,
     required this.flutter,
   });
@@ -145,6 +146,7 @@ final class CompatMatrix {
     return CompatMatrix(
       updated: json['updated'] as String? ?? 'unknown',
       unknownFrom: _componentVersions(_map(json, 'unknownFrom')),
+      releases: _releases(json['releases']),
       rules: rules,
       flutter: flutter,
     );
@@ -155,6 +157,24 @@ final class CompatMatrix {
 
   /// Per component, the first version this data knows nothing about.
   final Map<Component, Version> unknownFrom;
+
+  /// Known release versions per component, ascending: the upgrade targets
+  /// `fix` may choose from.
+  final Map<Component, List<Version>> releases;
+
+  static Map<Component, List<Version>> _releases(Object? json) {
+    if (json == null) return const {};
+    if (json is! Map<String, Object?>) {
+      throw const FormatException('"releases" must be an object');
+    }
+    return {
+      for (final MapEntry(:key, :value) in json.entries)
+        Component.parse(key): [
+          for (final v in value as List<Object?>) Version.parse(v as String)
+        ]..sort(),
+    };
+  }
+
   final List<CompatRule> rules;
   final List<FlutterRequirements> flutter;
 
