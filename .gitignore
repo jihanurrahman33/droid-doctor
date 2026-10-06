@@ -1,0 +1,5 @@
+.dart_tool/
+build/
+*.exe
+/droid_doctor
+coverage/
