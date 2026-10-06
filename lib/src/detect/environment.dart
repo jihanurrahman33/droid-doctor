@@ -26,6 +26,11 @@ final class EnvironmentProbe {
         _fileExists = fileExists ?? ((path) => File(path).existsSync()),
         _os = operatingSystem ?? Platform.operatingSystem;
 
+  /// Paths in the probed OS's style, so a probe for another OS (in tests)
+  /// builds the paths that OS would use.
+  late final p.Context _path =
+      p.Context(style: _os == 'windows' ? p.Style.windows : p.Style.posix);
+
   final ProcessRunner _run;
   final Map<String, String> _environment;
   final bool Function(String path) _fileExists;
@@ -85,7 +90,7 @@ final class EnvironmentProbe {
   }
 
   String _javaExecutable(String home) =>
-      p.join(home, 'bin', _os == 'windows' ? 'java.exe' : 'java');
+      _path.join(home, 'bin', _os == 'windows' ? 'java.exe' : 'java');
 
   Iterable<String> _androidStudioJbrs(String? configured) sync* {
     final dirs = [
@@ -96,14 +101,14 @@ final class EnvironmentProbe {
         _ => [
             '/opt/android-studio',
             if (_environment['HOME'] case final String home)
-              p.join(home, 'android-studio'),
+              _path.join(home, 'android-studio'),
           ],
       },
     ];
     for (final dir in dirs) {
       // macOS bundles nest the JDK home one level deeper.
-      yield p.join(dir, 'jbr', 'Contents', 'Home');
-      yield p.join(dir, 'jbr');
+      yield _path.join(dir, 'jbr', 'Contents', 'Home');
+      yield _path.join(dir, 'jbr');
     }
   }
 

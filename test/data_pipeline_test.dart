@@ -251,5 +251,9 @@ const templateKotlinGradlePluginVersion = '2.4.0';
     expect(
         defaultCacheDir({'XDG_CACHE_HOME': '/x'}, 'linux'), '/x/droid_doctor');
     expect(defaultCacheDir({'HOME': '/h'}, 'macos'), '/h/.cache/droid_doctor');
+    expect(
+        defaultCacheDir(
+            {'LOCALAPPDATA': r'C:\Users\u\AppData\Local'}, 'windows'),
+        r'C:\Users\u\AppData\Local\droid_doctor');
   });
 }

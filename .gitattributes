@@ -1,0 +1,2 @@
+# Fixtures and data are byte-compared in tests; keep LF everywhere.
+* text=auto eol=lf

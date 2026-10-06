@@ -19,11 +19,14 @@ const staleAfter = Duration(days: 30);
 String defaultCacheDir(Map<String, String> env, String operatingSystem) {
   if (env['DROID_DOCTOR_CACHE'] case final dir? when dir.isNotEmpty) return dir;
   if (operatingSystem == 'windows') {
-    return p.join(env['LOCALAPPDATA'] ?? env['APPDATA'] ?? '.', 'droid_doctor');
+    return p.windows
+        .join(env['LOCALAPPDATA'] ?? env['APPDATA'] ?? '.', 'droid_doctor');
   }
   final xdg = env['XDG_CACHE_HOME'];
-  return p.join(
-    xdg != null && xdg.isNotEmpty ? xdg : p.join(env['HOME'] ?? '.', '.cache'),
+  return p.posix.join(
+    xdg != null && xdg.isNotEmpty
+        ? xdg
+        : p.posix.join(env['HOME'] ?? '.', '.cache'),
     'droid_doctor',
   );
 }
