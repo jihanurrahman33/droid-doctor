@@ -3,3 +3,4 @@ build/
 *.exe
 /droid_doctor
 coverage/
+pubspec.lock
