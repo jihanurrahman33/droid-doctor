@@ -5,6 +5,8 @@ import 'package:droid_doctor/droid_doctor.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'hermetic.dart';
+
 import 'fix_test.dart' show copyFixture;
 
 const oldPlugin = '''
@@ -198,6 +200,8 @@ void main() {
         List<String> args) async {
       final out = StringBuffer(), err = StringBuffer(), lookups = <String>[];
       final code = await runDroidDoctor(
+        cacheDir: hermeticCacheDir,
+        now: hermeticNow,
         args,
         out: out,
         err: err,

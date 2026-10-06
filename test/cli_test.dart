@@ -5,6 +5,8 @@ import 'package:droid_doctor/droid_doctor.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'hermetic.dart';
+
 final pinned = ['--flutter-version', '3.47.2', '--java-version', '17'];
 
 String fixture(String name) => p.join('test', 'fixtures', name);
@@ -12,6 +14,8 @@ String fixture(String name) => p.join('test', 'fixtures', name);
 Future<({int code, String out, String err})> run(List<String> args) async {
   final out = StringBuffer(), err = StringBuffer();
   final code = await runDroidDoctor(
+    cacheDir: hermeticCacheDir,
+    now: hermeticNow,
     args,
     out: out,
     err: err,

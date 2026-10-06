@@ -68,6 +68,7 @@ final class ProjectSnapshot {
   /// A copy with different toolchain versions, for evaluating "what if"
   /// upgrades. A null argument keeps the current value.
   ProjectSnapshot withVersions({
+    Detected<Version>? flutter,
     Detected<Version>? gradle,
     Detected<Version>? agp,
     Detected<Version>? kgp,
@@ -77,7 +78,7 @@ final class ProjectSnapshot {
       ProjectSnapshot(
         projectPath: projectPath,
         dsl: dsl,
-        flutter: flutter,
+        flutter: flutter ?? this.flutter,
         java: clearJava ? null : java,
         gradle: gradle ?? this.gradle,
         agp: agp ?? this.agp,

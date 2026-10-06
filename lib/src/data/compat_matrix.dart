@@ -136,7 +136,8 @@ final class CompatMatrix {
                 in (f['template'] as Map<String, Object?>? ?? {}).entries)
               e.key: '${e.value}',
           },
-          reference: sources['flutter'],
+          reference: sources['flutter']
+              ?.replaceAll('{tag}', f['tag'] as String? ?? 'main'),
         ));
       } on Object catch (e) {
         throw FormatException('Invalid flutter[$i]: $e');

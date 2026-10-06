@@ -17,8 +17,7 @@ final class FixCommand extends ProjectCommand {
           defaultsTo: Strategy.minimal.name,
           allowedHelp: {
             Strategy.minimal.name: 'Smallest upgrades that fix the errors.',
-            Strategy.latest.name: 'Newest known versions (what flutter '
-                'create uses).',
+            Strategy.latest.name: 'Newest versions with known compatibility.',
           },
           help: 'How far to upgrade.')
       ..addFlag('dry-run',

@@ -135,9 +135,9 @@ void main() {
 
     test('unknown Flutter release is reported as info', () {
       final f =
-          byRule(check(project(flutter: '3.10.0')), 'flutter-requirements');
+          byRule(check(project(flutter: '3.5.0')), 'flutter-requirements');
       expect(f.single.severity, Severity.info);
-      expect(f.single.message, contains('3.10'));
+      expect(f.single.message, contains('3.5'));
     });
   });
 

@@ -80,22 +80,22 @@ void main() {
     test('minimal picks the smallest upgrades that fix every error', () {
       final solution = Solver(matrix).solve(scan(copyFixture('broken_kts')));
       expect(solution.targets, {
-        Component.gradle: v('8.14'),
-        Component.agp: v('8.11.1'),
-        Component.kgp: v('2.2.20'),
+        Component.gradle: v('8.14.5'),
+        Component.agp: v('8.11.2'),
+        Component.kgp: v('2.2.21'),
       });
       expect(solution.unresolved, isEmpty);
     });
 
-    test('latest picks what flutter create generates', () {
+    test('latest picks the newest versions with known compatibility', () {
       final solution = Solver(matrix).solve(
         scan(copyFixture('broken_kts')),
         strategy: Strategy.latest,
       );
       expect(solution.targets, {
         Component.gradle: v('9.3.1'),
-        Component.agp: v('9.1.0'),
-        Component.kgp: v('2.4.0'),
+        Component.agp: v('9.2.1'),
+        Component.kgp: v('2.4.20'),
       });
     });
 
@@ -117,7 +117,7 @@ void main() {
     test('solves around an old JDK and reports it as unresolved', () {
       final solution =
           Solver(matrix).solve(scan(copyFixture('legacy_groovy'), java: '11'));
-      expect(solution.targets[Component.agp], v('8.11.1'));
+      expect(solution.targets[Component.agp], v('8.11.2'));
       expect(solution.unresolved.map((f) => f.message),
           contains(contains('requires Java (JDK) 17')));
     });
@@ -143,9 +143,9 @@ void main() {
         for (final e in plan.edits.whereType<ReplaceLine>()) e.after.trim(),
       };
       expect(replaced, {
-        'id("com.android.application") version "8.11.1" apply false',
-        'id("org.jetbrains.kotlin.android") version "2.2.20" apply false',
-        r'distributionUrl=https\://services.gradle.org/distributions/gradle-8.14-all.zip',
+        'id("com.android.application") version "8.11.2" apply false',
+        'id("org.jetbrains.kotlin.android") version "2.2.21" apply false',
+        r'distributionUrl=https\://services.gradle.org/distributions/gradle-8.14.5-all.zip',
         'jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17',
         'minSdk = 23',
       });
@@ -168,8 +168,8 @@ void main() {
       expect(
           replaced,
           containsAll([
-            "ext.kotlin_version = '2.4.0'",
-            "classpath 'com.android.tools.build:gradle:9.1.0'",
+            "ext.kotlin_version = '2.4.20'",
+            "classpath 'com.android.tools.build:gradle:9.2.1'",
             'minSdkVersion 24',
           ]));
       final inserts = plan.edits.whereType<InsertLines>().toList();
@@ -205,7 +205,7 @@ void main() {
           'version "8.7.0" apply false; val pinned = "8.7.0"'));
       final plan = FixPlanner(matrix).plan(scan(root));
       expect(plan.manualSteps.single,
-          contains('Android Gradle Plugin 8.7.0 → 8.11.1'));
+          contains('Android Gradle Plugin 8.7.0 → 8.11.2'));
     });
 
     test('nothing to do for a healthy project', () {
@@ -223,7 +223,7 @@ void main() {
 
       final backup = applier.apply(plan.edits);
       expect(backup, startsWith(backupRoot));
-      expect(read(root, 'android/settings.gradle.kts'), contains('8.11.1'));
+      expect(read(root, 'android/settings.gradle.kts'), contains('8.11.2'));
       expect(Directory(root).listSync(recursive: true).map((e) => e.path),
           isNot(contains(endsWith('.droid_doctor.tmp'))));
 

@@ -4,6 +4,8 @@ import 'package:droid_doctor/droid_doctor.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'hermetic.dart';
+
 import 'fix_test.dart' show copyFixture, read;
 
 final pinned = ['--flutter-version', '3.47.2', '--java-version', '17'];
@@ -16,6 +18,8 @@ Future<({int code, String out, String err})> run(
 }) async {
   final out = StringBuffer(), err = StringBuffer();
   final code = await runDroidDoctor(
+    cacheDir: hermeticCacheDir,
+    now: hermeticNow,
     args,
     out: out,
     err: err,
@@ -39,7 +43,7 @@ void main() {
     final before = settings(root);
     final r = await run(['fix', '-p', root, '--dry-run', ...pinned]);
     expect(r.code, ExitCode.problems, reason: 'errors remain');
-    expect(r.out, contains('AGP     8.7.0 → 8.11.1'));
+    expect(r.out, contains('AGP     8.7.0 → 8.11.2'));
     expect(r.out, contains('Dry run: would apply 6 changes to 3 files.'));
     expect(settings(root), before);
   });
@@ -60,7 +64,7 @@ void main() {
     expect(r.out, contains('Applied 6 changes to 3 files.'));
     expect(r.out, contains('Check: 0 errors'));
     expect(r.code, ExitCode.ok);
-    expect(settings(root), contains('"8.11.1"'));
+    expect(settings(root), contains('"8.11.2"'));
     expect((await run(['check', '-p', root, ...pinned])).code, ExitCode.ok);
   });
 

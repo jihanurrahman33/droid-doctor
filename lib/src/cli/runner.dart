@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../data/compat_matrix.dart';
+import '../data/matrix_store.dart';
 import '../detect/android_scanner.dart';
 import '../detect/environment.dart';
 import '../model/finding.dart';
@@ -13,8 +14,10 @@ import '../model/version.dart';
 import '../plugins/pub_client.dart';
 import '../report/reporters.dart';
 import '../rules/rule.dart';
+import 'data_command.dart';
 import 'explain_command.dart';
 import 'fix_command.dart';
+import 'plan_command.dart';
 import 'plugins_command.dart';
 import 'version.dart';
 
@@ -38,6 +41,9 @@ final class CliContext {
     required this.stdinIsTerminal,
     required this.readStdin,
     required this.packageInfo,
+    required this.cacheDir,
+    required this.now,
+    required this.httpGet,
   });
 
   final EnvironmentProbe probe;
@@ -53,6 +59,11 @@ final class CliContext {
   final bool stdinIsTerminal;
   final Future<String> Function() readStdin;
   final PackageLookup packageInfo;
+
+  /// Where downloaded compatibility data is cached.
+  final String cacheDir;
+  final DateTime Function() now;
+  final Future<String> Function(Uri) httpGet;
 }
 
 /// Runs droid_doctor with [arguments] and returns the exit code. `check` is
@@ -68,6 +79,9 @@ Future<int> runDroidDoctor(
   bool? stdinIsTerminal,
   Future<String> Function()? readStdin,
   PackageLookup? packageInfo,
+  String? cacheDir,
+  DateTime Function()? now,
+  Future<String> Function(Uri)? httpGet,
 }) {
   final context = CliContext(
     probe: probe ?? EnvironmentProbe(),
@@ -81,6 +95,10 @@ Future<int> runDroidDoctor(
     readStdin: readStdin ??
         () => stdin.transform(const Utf8Decoder(allowMalformed: true)).join(),
     packageInfo: packageInfo ?? pubDevPackageInfo,
+    cacheDir: cacheDir ??
+        defaultCacheDir(Platform.environment, Platform.operatingSystem),
+    now: now ?? DateTime.now,
+    httpGet: httpGet ?? httpGetText,
   );
   final runner = DroidDoctorRunner(context);
   final isTopLevel = arguments.isNotEmpty &&
@@ -102,6 +120,8 @@ final class DroidDoctorRunner extends CommandRunner<int> {
     addCommand(FixCommand(_context));
     addCommand(ExplainCommand(_context));
     addCommand(PluginsCommand(_context));
+    addCommand(PlanCommand(_context));
+    addCommand(DataCommand(_context));
   }
 
   final CliContext _context;
@@ -154,9 +174,20 @@ abstract class ProjectCommand extends Command<int> {
   bool get color =>
       args.wasParsed('color') ? args.flag('color') : context.color;
 
+  /// Notes about the data in use (ignored downloads, staleness), for reports.
+  final dataNotes = <String>[];
+
   CompatMatrix loadMatrix() {
     final path = args.option('matrix');
-    if (path == null) return CompatMatrix.bundled();
+    if (path == null) {
+      final loaded = MatrixStore(context.cacheDir).load();
+      dataNotes.addAll([
+        if (loaded.note != null) loaded.note!,
+        if (stalenessNote(loaded.matrix, context.now()) case final stale?)
+          stale,
+      ]);
+      return loaded.matrix;
+    }
     final file = File(path);
     if (!file.existsSync()) usageException('Matrix file not found: $path');
     try {
@@ -230,7 +261,7 @@ final class CheckCommand extends ProjectCommand {
       project: project,
       findings: checkProject(project, matrix),
       matrix: matrix,
-      notes: context.probe.notes,
+      notes: [...context.probe.notes, ...dataNotes],
     );
 
     final ci = args.flag('ci');

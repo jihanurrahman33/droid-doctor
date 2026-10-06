@@ -22,3 +22,4 @@ export 'src/explain/explainer.dart';
 export 'src/explain/patterns.dart';
 export 'src/plugins/plugin_auditor.dart';
 export 'src/plugins/pub_client.dart';
+export 'src/data/matrix_store.dart';

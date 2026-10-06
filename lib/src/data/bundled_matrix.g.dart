@@ -5,12 +5,14 @@ const bundledMatrixJson = r'''
 {
   "schemaVersion": 1,
   "updated": "2026-10-06",
+  "rulesReviewedAgainstFlutter": "3.47.6",
   "sources": {
     "gradle-java": "https://docs.gradle.org/current/userguide/compatibility.html#java",
     "agp-gradle": "https://developer.android.com/build/releases/gradle-plugin#updating-gradle",
+    "flutter-tools": "https://github.com/flutter/flutter/blob/main/packages/flutter_tools/lib/src/android/gradle_utils.dart",
     "agp-java": "https://developer.android.com/build/jdks",
     "kgp": "https://kotlinlang.org/docs/gradle-configure-project.html#apply-the-plugin",
-    "flutter": "https://github.com/flutter/flutter/blob/0e98c1f72caa0777cdc1f99a673418009f1a4fde/packages/flutter_tools/lib/src/android/gradle_utils.dart"
+    "flutter": "https://github.com/flutter/flutter/tree/{tag}/packages/flutter_tools/gradle/src/main"
   },
   "unknownFrom": {
     "java": "26",
@@ -19,9 +21,9 @@ const bundledMatrixJson = r'''
     "kgp": "2.5"
   },
   "releases": {
-    "gradle": ["7.0", "7.0.2", "7.2", "7.3", "7.3.3", "7.4", "7.5", "7.6", "7.6.3", "8.0", "8.1", "8.1.1", "8.2", "8.4", "8.5", "8.6", "8.7", "8.9", "8.10", "8.10.2", "8.11.1", "8.13", "8.14", "8.14.3", "9.1.0", "9.3.1"],
-    "agp": ["7.0.4", "7.1.3", "7.2.1", "7.3.1", "7.4.2", "8.0.0", "8.1.0", "8.2.2", "8.3.1", "8.5.0", "8.6.0", "8.7.0", "8.7.2", "8.8.0", "8.9.0", "8.10.0", "8.11.1", "9.0.1", "9.1.0"],
-    "kgp": ["1.7.10", "1.7.20", "1.8.0", "1.8.20", "1.8.22", "1.9.0", "1.9.20", "1.9.25", "2.0.0", "2.0.20", "2.0.21", "2.1.0", "2.1.20", "2.1.21", "2.2.0", "2.2.20", "2.3.0", "2.3.10", "2.3.20", "2.4.0"]
+    "gradle": ["7.0.2", "7.1.1", "7.2", "7.3.3", "7.4.2", "7.5.1", "7.6.6", "8.0.2", "8.1.1", "8.2.1", "8.3", "8.4", "8.5", "8.6", "8.7", "8.8", "8.9", "8.10.2", "8.11.1", "8.12.1", "8.13", "8.14.5", "9.0.0", "9.1.0", "9.2.1", "9.3.1", "9.4.1", "9.5.1", "9.6.1", "9.7.1", "9.8.0"],
+    "agp": ["7.0.4", "7.1.3", "7.2.2", "7.3.1", "7.4.2", "8.0.2", "8.1.4", "8.2.2", "8.3.2", "8.4.2", "8.5.2", "8.6.1", "8.7.3", "8.8.2", "8.9.3", "8.10.1", "8.11.2", "8.12.3", "8.13.2", "9.0.1", "9.1.1", "9.2.1", "9.3.3", "9.4.1"],
+    "kgp": ["1.7.0", "1.7.10", "1.7.22", "1.8.0", "1.8.10", "1.8.22", "1.9.0", "1.9.10", "1.9.25", "2.0.0", "2.0.10", "2.0.21", "2.1.0", "2.1.10", "2.1.21", "2.2.0", "2.2.10", "2.2.21", "2.3.0", "2.3.10", "2.3.21", "2.4.0", "2.4.10", "2.4.20"]
   },
   "rules": [
     {"when": "java", "in": {"min": "25", "max": "26"}, "require": "gradle", "range": {"min": "9.1.0"}, "source": "gradle-java"},
@@ -42,7 +44,7 @@ const bundledMatrixJson = r'''
     {"when": "java", "in": {"min": "10", "max": "11"}, "require": "gradle", "range": {"min": "4.7", "max": "9"}, "source": "gradle-java"},
     {"when": "java", "in": {"min": "9", "max": "10"}, "require": "gradle", "range": {"min": "4.3", "max": "9"}, "source": "gradle-java"},
     {"when": "java", "in": {"min": "8", "max": "9"}, "require": "gradle", "range": {"min": "2.0", "max": "9"}, "source": "gradle-java"},
-
+    {"when": "agp", "in": {"min": "9.2", "max": "9.3"}, "require": "gradle", "range": {"min": "9.3.1"}, "source": "flutter-tools"},
     {"when": "agp", "in": {"min": "9.1", "max": "9.2"}, "require": "gradle", "range": {"min": "9.3.1"}, "source": "agp-gradle"},
     {"when": "agp", "in": {"min": "9.0", "max": "9.1"}, "require": "gradle", "range": {"min": "9.1.0"}, "source": "agp-gradle"},
     {"when": "agp", "in": {"min": "8.11", "max": "8.14"}, "require": "gradle", "range": {"min": "8.13"}, "source": "agp-gradle"},
@@ -66,11 +68,9 @@ const bundledMatrixJson = r'''
     {"when": "agp", "in": {"min": "3.5", "max": "3.6"}, "require": "gradle", "range": {"min": "5.4.1"}, "source": "agp-gradle"},
     {"when": "agp", "in": {"min": "3.4", "max": "3.5"}, "require": "gradle", "range": {"min": "5.1.1"}, "source": "agp-gradle"},
     {"when": "agp", "in": {"min": "3.3", "max": "3.4"}, "require": "gradle", "range": {"min": "4.10.1"}, "source": "agp-gradle"},
-
     {"when": "agp", "in": {"min": "8.0"}, "require": "java", "range": {"min": "17"}, "source": "agp-java"},
     {"when": "agp", "in": {"min": "7.0", "max": "8.0"}, "require": "java", "range": {"min": "11"}, "source": "agp-java"},
     {"when": "agp", "in": {"min": "4.2", "max": "7.0"}, "require": "java", "range": {"min": "8"}, "source": "agp-java"},
-
     {"when": "kgp", "in": {"min": "2.4.0", "max": "2.5"}, "require": "gradle", "range": {"min": "8.5", "max": "9.6"}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "2.3.0", "max": "2.4"}, "require": "gradle", "range": {"min": "7.6.3", "max": "9.6"}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "2.2.0", "max": "2.3"}, "require": "gradle", "range": {"min": "7.6.3", "max": "8.15"}, "aboveMax": "warning", "source": "kgp"},
@@ -84,7 +84,6 @@ const bundledMatrixJson = r'''
     {"when": "kgp", "in": {"min": "1.7.20", "max": "1.8.0"}, "require": "gradle", "range": {"min": "6.7.1", "max": "7.1.1", "maxInclusive": true}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "1.7.0", "max": "1.7.20"}, "require": "gradle", "range": {"min": "6.7.1", "max": "7.0.2", "maxInclusive": true}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "1.6.20", "max": "1.7.0"}, "require": "gradle", "range": {"min": "6.1.1", "max": "7.0.2", "maxInclusive": true}, "aboveMax": "warning", "source": "kgp"},
-
     {"when": "kgp", "in": {"min": "2.4.0", "max": "2.5"}, "require": "agp", "range": {"min": "8.2.2", "max": "9.3"}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "2.3.10", "max": "2.4"}, "require": "agp", "range": {"min": "8.2.2", "max": "9.3"}, "aboveMax": "warning", "source": "kgp"},
     {"when": "kgp", "in": {"min": "2.3.0", "max": "2.3.10"}, "require": "agp", "range": {"min": "8.2.2", "max": "8.14"}, "aboveMax": "warning", "source": "kgp"},
@@ -101,12 +100,20 @@ const bundledMatrixJson = r'''
     {"when": "kgp", "in": {"min": "1.6.20", "max": "1.7.20"}, "require": "agp", "range": {"min": "3.4.3", "max": "7.0.2", "maxInclusive": true}, "aboveMax": "warning", "source": "kgp"}
   ],
   "flutter": [
-    {
-      "version": "3.47",
-      "error": {"java": "17", "gradle": "8.14", "agp": "8.11.1", "kgp": "2.2.20", "minSdk": 23},
-      "warn": {"java": "17", "gradle": "9.1.0", "agp": "9.0.1", "kgp": "2.3.20", "minSdk": 24},
-      "template": {"gradle": "9.3.1", "agp": "9.1.0", "kgp": "2.4.0", "compileSdk": 36, "minSdk": 24}
-    }
+    {"version": "3.47", "tag": "3.47.6", "error": {"java": "17", "gradle": "8.14.0", "agp": "8.11.1", "kgp": "2.2.20", "minSdk": 23}, "warn": {"java": "17", "gradle": "9.1.0", "agp": "9.0.1", "kgp": "2.3.20", "minSdk": 24}, "template": {"gradle": "9.3.1", "agp": "9.1.0", "kgp": "2.4.0", "compileSdk": 36, "minSdk": 24}},
+    {"version": "3.44", "tag": "3.44.9", "error": {"java": "17", "gradle": "8.7.0", "agp": "8.6.0", "kgp": "2.0.0", "minSdk": 23}, "warn": {"java": "17", "gradle": "8.14.0", "agp": "8.11.1", "kgp": "2.2.20", "minSdk": 24}, "template": {"gradle": "9.1.0", "agp": "9.0.1", "kgp": "2.3.20", "compileSdk": 36, "minSdk": 24}},
+    {"version": "3.41", "tag": "3.41.9", "error": {"java": "17", "gradle": "8.3.0", "agp": "8.1.1", "kgp": "1.8.10", "minSdk": 23}, "warn": {"java": "17", "gradle": "8.7.0", "agp": "8.6.0", "kgp": "2.1.0", "minSdk": 24}, "template": {"gradle": "8.14", "agp": "8.11.1", "kgp": "2.2.20", "compileSdk": 36, "minSdk": 24}},
+    {"version": "3.38", "tag": "3.38.10", "error": {"java": "17", "gradle": "8.3.0", "agp": "8.1.1", "kgp": "1.8.10", "minSdk": 23}, "warn": {"java": "17", "gradle": "8.7.0", "agp": "8.6.0", "kgp": "2.1.0", "minSdk": 24}, "template": {"gradle": "8.14", "agp": "8.11.1", "kgp": "2.2.20", "compileSdk": 36, "minSdk": 24}},
+    {"version": "3.35", "tag": "3.35.7", "error": {"java": "11", "gradle": "8.3.0", "agp": "8.1.1", "kgp": "1.8.10", "minSdk": 23}, "warn": {"java": "17", "gradle": "8.7.0", "agp": "8.6.0", "kgp": "2.1.0", "minSdk": 24}, "template": {"gradle": "8.12", "agp": "8.9.1", "kgp": "2.1.0", "compileSdk": 36, "minSdk": 24}},
+    {"version": "3.32", "tag": "3.32.8", "error": {"gradle": "7.0.2", "agp": "7.0.0", "kgp": "1.7.0"}, "warn": {"java": "11", "gradle": "7.4.2", "agp": "8.3.0", "kgp": "1.8.10", "minSdk": 21}, "template": {"gradle": "8.12", "agp": "8.7.3", "kgp": "2.1.0", "compileSdk": 35, "minSdk": 21}},
+    {"version": "3.29", "tag": "3.29.3", "error": {"gradle": "7.0.2", "agp": "7.0.0", "kgp": "1.7.0"}, "warn": {"java": "11", "gradle": "7.4.2", "agp": "7.3.1", "kgp": "1.8.10"}, "template": {"gradle": "8.10.2", "agp": "8.7.0", "kgp": "1.8.22", "compileSdk": 35, "minSdk": 21}},
+    {"version": "3.27", "tag": "3.27.4", "error": {"gradle": "7.0.2", "agp": "7.0.0", "kgp": "1.7.0"}, "warn": {"java": "11", "gradle": "7.1.0", "agp": "7.0.1", "kgp": "1.7.10"}, "template": {"gradle": "8.3", "agp": "8.1.0", "kgp": "1.8.22", "compileSdk": 35, "minSdk": 21}},
+    {"version": "3.24", "tag": "3.24.5", "error": {"gradle": "7.0.2", "agp": "7.0.0", "kgp": "1.7.0"}, "warn": {"java": "11", "gradle": "7.1.0", "agp": "7.0.1", "kgp": "1.7.10"}, "template": {"gradle": "8.3", "agp": "8.1.0", "kgp": "1.8.22", "compileSdk": 34, "minSdk": 21}},
+    {"version": "3.22", "tag": "3.22.3", "error": {}, "warn": {"java": "11", "gradle": "7.0.2", "agp": "7.0.0", "kgp": "1.5.0"}, "template": {"gradle": "7.6.3", "agp": "7.3.0", "kgp": "1.7.10", "compileSdk": 34, "minSdk": 21}},
+    {"version": "3.19", "tag": "3.19.6", "error": {}, "warn": {}, "template": {"gradle": "7.6.3", "agp": "7.3.0", "kgp": "1.7.10", "compileSdk": 34, "minSdk": 19}},
+    {"version": "3.16", "tag": "3.16.9", "error": {}, "warn": {}, "template": {"gradle": "7.5", "agp": "7.3.0", "kgp": "1.7.10", "compileSdk": 33, "minSdk": 19}},
+    {"version": "3.13", "tag": "3.13.9", "error": {}, "warn": {}, "template": {"gradle": "7.5", "agp": "7.3.0", "kgp": "1.7.10", "compileSdk": 33, "minSdk": 19}},
+    {"version": "3.10", "tag": "3.10.7", "error": {}, "warn": {}, "template": {"gradle": "7.5", "agp": "7.3.0", "kgp": "1.7.10"}}
   ]
 }
 ''';

@@ -5,6 +5,8 @@ import 'package:droid_doctor/droid_doctor.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import 'hermetic.dart';
+
 String realLog(String name) =>
     File(p.join('test', 'fixtures', 'logs', '$name.log')).readAsStringSync();
 
@@ -207,6 +209,8 @@ A problem occurred configuring project ':flutter_old_plugin'.
     }) async {
       final out = StringBuffer(), err = StringBuffer();
       final code = await runDroidDoctor(
+        cacheDir: hermeticCacheDir,
+        now: hermeticNow,
         args,
         out: out,
         err: err,

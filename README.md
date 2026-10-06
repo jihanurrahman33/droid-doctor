@@ -54,7 +54,7 @@ droid_doctor --ci                 # also fail (exit 1) on warnings
 droid_doctor fix                  # show the changes, ask, then apply
 droid_doctor fix --dry-run        # only show them
 droid_doctor fix --yes            # apply without asking (CI/scripts)
-droid_doctor fix --strategy latest  # upgrade to what `flutter create` uses
+droid_doctor fix --strategy latest  # newest versions with known compatibility
 droid_doctor fix --undo           # restore the files the last fix changed
 ```
 
@@ -73,7 +73,8 @@ Apply 6 changes to 3 files? [y/N]
 ```
 
 - **`minimal`** (default) makes the smallest upgrades that fix every error.
-  **`latest`** moves to the newest known versions. Neither ever downgrades.
+  **`latest`** moves to the newest versions the compatibility data covers.
+  Neither ever downgrades.
 - Besides versions, `fix` adds a missing AGP 8 `namespace`, aligns the Kotlin
   `jvmTarget` with Java's, raises a too-low `minSdk`, and when crossing to
   AGP 9 keeps the pre-AGP 9 defaults in `gradle.properties` (as
@@ -125,6 +126,26 @@ plugins under AGP built-in Kotlin. For problem plugins it asks pub.dev whether
 a newer version or a replacement exists (`--offline` to skip). `--json` and
 `--ci` work as in `check`.
 
+### Planning a Flutter upgrade
+
+```sh
+droid_doctor plan --flutter 3.47      # or --flutter latest
+```
+
+```console
+Flutter 3.47 requires:
+  component minimum   warns below  yours            status
+  Gradle    8.14.0    9.1.0        7.5              ✗ fails
+  AGP       8.11.1    9.0.1        7.3.0            ✗ fails
+  ...
+Apply it now, before upgrading Flutter:
+  droid_doctor fix --flutter-version 3.47
+```
+
+Shows the minimums Flutter enforces (and the versions it warns about), how
+your project compares, and what `fix` would change. Exits 1 when the upgrade
+would break the build.
+
 ### Exit codes
 
 | Code | Meaning |
@@ -156,17 +177,33 @@ then Android Studio's bundled JBR, then `JAVA_HOME`, then `java` on `PATH`.
 ## Compatibility data
 
 The data lives in [`data/matrix.json`](data/matrix.json), with a source link on
-every rule. It's bundled into the executable so checks work offline. After
-editing it, run:
+every rule. It's bundled into the executable so checks work offline.
 
 ```sh
-dart run tool/embed_matrix.dart
+droid_doctor data show     # which data is in use, and how old it is
+droid_doctor data update   # download newer data without upgrading droid_doctor
+```
+
+A weekly workflow refreshes it and opens a pull request:
+
+- **Automatic:** each stable Flutter release's Android requirements, read from
+  Flutter's own version checks at that release's tag (3.10 onwards), and the
+  Gradle, AGP and Kotlin release lists.
+- **Reviewed by a human:** the pairwise compatibility rules. The pull request
+  lists new releases the rules don't cover yet and any change to Flutter's
+  compatibility tables.
+
+To refresh locally (a Flutter checkout makes it faster):
+
+```sh
+dart run tool/update_data.dart [--flutter-repo ~/dev/flutter]
+dart run tool/embed_matrix.dart   # after editing data/matrix.json by hand
 ```
 
 ## Roadmap
 
-- `plan --flutter <version>`: what breaks before upgrading Flutter.
-- Data that updates itself weekly from upstream sources.
+- Native binaries, a Homebrew tap and a GitHub Action.
+- iOS checks (CocoaPods/SPM, deployment target).
 
 ## License
 

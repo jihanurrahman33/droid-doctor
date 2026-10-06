@@ -10,7 +10,7 @@ enum Strategy {
   /// upgrades.
   minimal,
 
-  /// Upgrade to the newest known versions (what `flutter create` generates).
+  /// Upgrade to the newest versions whose compatibility the data covers.
   latest,
 }
 
