@@ -21,19 +21,16 @@ inputs:
 runs:
   using: composite
   steps:
+    # Flutter (which includes Dart) must already be set up: droid_doctor reads
+    # the Flutter version, and actions nested in a composite action can't
+    # reliably set up Dart themselves.
     - name: Check for Dart
-      id: dart
       shell: bash
       run: |
-        if command -v dart >/dev/null 2>&1; then
-          echo "found=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "found=false" >> "$GITHUB_OUTPUT"
+        if ! command -v dart >/dev/null 2>&1; then
+          echo "::error title=droid_doctor::Dart not found. Add subosito/flutter-action (or dart-lang/setup-dart) before this step."
+          exit 1
         fi
-
-    - name: Set up Dart
-      if: steps.dart.outputs.found != 'true'
-      uses: dart-lang/setup-dart@v1
 
     # GITHUB_ACTION_PATH is this action checked out at the ref the workflow
     # asked for (`@v1`, a SHA, or the local checkout for `uses: ./`), so the

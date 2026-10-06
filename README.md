@@ -37,6 +37,7 @@ Or download a native binary for Linux, macOS or Windows from the
 ### In CI (GitHub Actions)
 
 ```yaml
+- uses: subosito/flutter-action@v2   # Flutter (with Dart) must be set up first
 - uses: jihanurrahman33/droid-doctor@v1
   with:
     project: .                # Flutter project root (default)
