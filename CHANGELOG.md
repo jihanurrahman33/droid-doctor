@@ -1,3 +1,15 @@
+## 1.0.0
+
+- GitHub Action: `uses: jihanurrahman33/droid-doctor@v1` checks a Flutter
+  project in CI and annotates the affected lines of pull requests.
+- `check --annotations` prints GitHub Actions annotations for any workflow.
+- Native binaries for Linux (x64, arm64), macOS (arm64, x64) and Windows
+  (x64) on every release, with SHA256 checksums, and a Homebrew formula.
+- An end-to-end workflow breaks a fresh `flutter create` app, then requires
+  `explain` to recognize the real build failure, `fix` to repair it and the
+  APK to build — on every push and weekly against the latest Flutter.
+- Fixed path handling on Windows.
+
 ## 0.4.0
 
 - New `droid_doctor plan --flutter <version|latest>`: shows what a Flutter

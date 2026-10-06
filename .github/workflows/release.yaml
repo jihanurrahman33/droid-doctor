@@ -1,0 +1,134 @@
+name: Release
+
+# Push a tag matching pubspec.yaml's version (e.g. v1.0.0) to build native
+# binaries, publish a GitHub release and, if configured, update Homebrew.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - name: Tag matches pubspec.yaml
+        id: version
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match pubspec.yaml version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  binaries:
+    needs: verify
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: linux-x64 }
+          - { os: ubuntu-24.04-arm, target: linux-arm64 }
+          - { os: macos-latest, target: macos-arm64 }
+          - { os: macos-15-intel, target: macos-x64 }
+          - { os: windows-latest, target: windows-x64 }
+    runs-on: ${{ matrix.os }}
+    env:
+      ARCHIVE: droid_doctor-${{ needs.verify.outputs.version }}-${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - name: Compile
+        shell: bash
+        run: |
+          mkdir -p dist
+          exe=droid_doctor; [ "$RUNNER_OS" = Windows ] && exe=droid_doctor.exe
+          dart compile exe bin/droid_doctor.dart -o "dist/$exe"
+          "dist/$exe" --version | grep -q "${{ needs.verify.outputs.version }}"
+      - name: Package (tar.gz)
+        if: runner.os != 'Windows'
+        run: tar -czf "$ARCHIVE.tar.gz" -C dist droid_doctor
+      - name: Package (zip)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path dist/droid_doctor.exe -DestinationPath "$env:ARCHIVE.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: ${{ env.ARCHIVE }}.*
+
+  release:
+    needs: [verify, binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum droid_doctor-* > SHA256SUMS && cat SHA256SUMS
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v v="${{ needs.verify.outputs.version }}" \
+            '$0 == "## " v {found=1; next} /^## / && found {exit} found' \
+            CHANGELOG.md > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: notes.md
+          files: dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SHA256SUMS
+          path: dist/SHA256SUMS
+
+  # Optional: create a public `homebrew-tap` repository and add a
+  # HOMEBREW_TAP_TOKEN secret (a fine-grained token with contents:write on that
+  # repository). Users then: brew install jihanurrahman33/tap/droid_doctor
+  homebrew:
+    needs: [verify, release]
+    runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Skip without a tap token
+        if: env.TOKEN == ''
+        run: echo "HOMEBREW_TAP_TOKEN not set; skipping the Homebrew update."
+      - uses: actions/checkout@v4
+        if: env.TOKEN != ''
+      - uses: dart-lang/setup-dart@v1
+        if: env.TOKEN != ''
+      - run: dart pub get
+        if: env.TOKEN != ''
+      - uses: actions/download-artifact@v4
+        if: env.TOKEN != ''
+        with:
+          name: SHA256SUMS
+      - uses: actions/checkout@v4
+        if: env.TOKEN != ''
+        with:
+          repository: jihanurrahman33/homebrew-tap
+          token: ${{ env.TOKEN }}
+          path: tap
+      - name: Update the formula
+        if: env.TOKEN != ''
+        run: |
+          mkdir -p tap/Formula
+          dart run tool/homebrew_formula.dart "${{ needs.verify.outputs.version }}" SHA256SUMS \
+            > tap/Formula/droid_doctor.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/droid_doctor.rb
+          git commit -m "droid_doctor ${{ needs.verify.outputs.version }}"
+          git push

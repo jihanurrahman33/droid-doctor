@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:path/path.dart' as p;
+
 import '../data/compat_matrix.dart';
 import '../model/component.dart';
 import '../model/finding.dart';
@@ -103,3 +105,37 @@ String renderText(
 
 String _plural(int n, String one, [String? many]) =>
     '$n ${n == 1 ? one : many ?? '${one}s'}';
+
+/// GitHub Actions workflow commands (`::error file=...,line=...::message`).
+/// File paths are made relative to [workingDirectory] — the repository root
+/// in GitHub Actions — so annotations land on the right file.
+String renderGitHubAnnotations(CheckResult result,
+    {required String workingDirectory}) {
+  String escape(String s) =>
+      s.replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+  String escapeProperty(String s) =>
+      escape(s).replaceAll(':', '%3A').replaceAll(',', '%2C');
+
+  final out = StringBuffer();
+  for (final f in result.findings) {
+    final level = switch (f.severity) {
+      Severity.error => 'error',
+      Severity.warning => 'warning',
+      Severity.info => 'notice',
+    };
+    final location = f.location;
+    final properties = [
+      'title=${escapeProperty('droid_doctor: ${f.ruleId}')}',
+      if (location != null) ...[
+        'file=${escapeProperty(p.split(p.relative(
+              p.join(result.project.projectPath, location.path),
+              from: workingDirectory,
+            )).join('/'))}',
+        'line=${location.line}',
+      ],
+    ];
+    final message = f.fix == null ? f.message : '${f.message}\nFix: ${f.fix}';
+    out.writeln('::$level ${properties.join(',')}::${escape(message)}');
+  }
+  return out.toString();
+}

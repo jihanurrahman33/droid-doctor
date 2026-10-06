@@ -1,0 +1,81 @@
+name: E2E
+
+# The end-to-end proof: break a fresh `flutter create` app the way old
+# projects are broken, and require droid_doctor to explain the real build
+# failure, fix it, and leave an app that builds.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 7 * * 1' # Weekly, to catch new Flutter/Gradle/AGP releases.
+  workflow_dispatch:
+
+jobs:
+  broken-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP: ${{ github.workspace }}/../e2e_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install droid_doctor from this commit
+        run: dart pub global activate --source path .
+
+      - name: Create and break an app
+        run: |
+          flutter create --org com.example "$APP"
+          cd "$APP/android"
+          sed -i -E 's/(id\("com\.android\.application"\) version )"[^"]*"/\1"8.7.0"/' settings.gradle.kts
+          sed -i -E 's/(id\("org\.jetbrains\.kotlin\.android"\) version )"[^"]*"/\1"1.9.0"/' settings.gradle.kts
+          sed -i -E 's#gradle-[0-9.]+-(all|bin)\.zip#gradle-8.3-all.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/JvmTarget.JVM_17/JvmTarget.JVM_11/; /namespace = /d; s/minSdk = flutter.minSdkVersion/minSdk = 21/' app/build.gradle.kts
+          sed -i '/newDsl/d; /builtInKotlin/d' gradle.properties
+          git -C "$APP" diff --stat || true
+
+      - name: The broken app really fails to build
+        working-directory: ${{ env.APP }}
+        run: |
+          if flutter build apk --debug > broken.log 2>&1; then
+            echo "::error::The deliberately broken app built; the E2E setup is wrong."
+            exit 1
+          fi
+          tail -20 broken.log
+
+      - name: explain recognizes the real failure
+        working-directory: ${{ env.APP }}
+        run: dart pub global run droid_doctor explain broken.log
+
+      - name: check reports errors
+        working-directory: ${{ env.APP }}
+        run: |
+          set +e
+          dart pub global run droid_doctor check
+          code=$?
+          if [ "$code" != 1 ]; then
+            echo "::error::check exited $code on a broken app (expected 1)."
+            exit 1
+          fi
+
+      - name: fix repairs it
+        working-directory: ${{ env.APP }}
+        run: |
+          dart pub global run droid_doctor fix --yes
+          dart pub global run droid_doctor check
+
+      - name: The fixed app builds
+        working-directory: ${{ env.APP }}
+        run: flutter build apk --debug
+
+      - name: undo restores the broken state
+        working-directory: ${{ env.APP }}
+        run: |
+          dart pub global run droid_doctor fix --undo
+          grep -q 'version "8.7.0"' android/settings.gradle.kts

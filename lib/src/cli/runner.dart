@@ -242,7 +242,11 @@ final class CheckCommand extends ProjectCommand {
       ..addFlag('json', negatable: false, help: 'Print JSON output.')
       ..addFlag('ci',
           negatable: false,
-          help: 'Exit with code 1 on warnings too, and disable colors.');
+          help: 'Exit with code 1 on warnings too, and disable colors.')
+      ..addFlag('annotations',
+          negatable: false,
+          help: 'Also print GitHub Actions annotations, so problems show on '
+              'the changed lines of a pull request.');
   }
 
   @override
@@ -268,6 +272,10 @@ final class CheckCommand extends ProjectCommand {
     context.out.write(args.flag('json')
         ? '${renderJson(result, toolVersion: packageVersion)}\n'
         : renderText(result, toolVersion: packageVersion, color: !ci && color));
+    if (args.flag('annotations')) {
+      context.out.write(renderGitHubAnnotations(result,
+          workingDirectory: Directory.current.path));
+    }
 
     final failing = result.count(Severity.error) +
         (ci ? result.count(Severity.warning) : 0);

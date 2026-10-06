@@ -102,4 +102,24 @@ void main() {
     expect(help.code, ExitCode.ok);
     expect(help.out, contains('check'));
   });
+
+  test('--annotations emits GitHub workflow commands', () async {
+    for (final project in [
+      fixture('broken_kts'),
+      p.join(fixture('broken_kts'), 'android'),
+    ]) {
+      final r = await run(['-p', project, '--annotations', ...pinned]);
+      final lines = r.out.split('\n').where((l) => l.startsWith('::')).toList();
+      expect(lines, hasLength(9));
+      expect(
+        lines.first,
+        '::error title=droid_doctor%3A compatibility,'
+        'file=test/fixtures/broken_kts/android/gradle/wrapper/'
+        'gradle-wrapper.properties,line=5::Android Gradle Plugin 8.7.0 '
+        'requires Gradle 8.9 or newer (found 8.3).%0AFix: Set distributionUrl '
+        r'to https\://services.gradle.org/distributions/gradle-8.9-all.zip',
+        reason: 'same path whether -p is the root or android/',
+      );
+    }
+  });
 }

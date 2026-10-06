@@ -26,8 +26,25 @@ error    Flutter 3.47 requires Android Gradle Plugin 8.11.1 or newer (found 8.7.
 ## Install
 
 ```sh
-dart pub global activate droid_doctor
+dart pub global activate droid_doctor          # with Dart/Flutter installed
+brew install jihanurrahman33/tap/droid_doctor  # macOS/Linux, no Dart needed
 ```
+
+Or download a native binary for Linux, macOS or Windows from the
+[releases page](https://github.com/jihanurrahman33/droid-doctor/releases)
+(checksums in `SHA256SUMS`).
+
+### In CI (GitHub Actions)
+
+```yaml
+- uses: jihanurrahman33/droid-doctor@v1
+  with:
+    project: .                # Flutter project root (default)
+    fail-on-warnings: false   # true to fail on warnings too
+```
+
+Problems appear as annotations on the affected lines of the pull request.
+Any CI: `droid_doctor check --ci` exits 1 on problems; `--json` for tooling.
 
 ## Usage
 
@@ -43,6 +60,7 @@ droid_doctor --ci                 # also fail (exit 1) on warnings
 | `-p, --project` | Flutter project root or its `android/` directory (default `.`) |
 | `--json` | JSON output |
 | `--ci` | Exit 1 on warnings too; no colors |
+| `--annotations` | Also print GitHub Actions annotations |
 | `--[no-]color` | Force colors on or off |
 | `--flutter-version` | Skip running `flutter`; use this version |
 | `--java-version` | Skip JDK detection; use this version |
@@ -202,8 +220,8 @@ dart run tool/embed_matrix.dart   # after editing data/matrix.json by hand
 
 ## Roadmap
 
-- Native binaries, a Homebrew tap and a GitHub Action.
 - iOS checks (CocoaPods/SPM, deployment target).
+- Editor integration (run `check` when build files change).
 
 ## License
 

@@ -1,0 +1,17 @@
+name: Publish to pub.dev
+
+# Publishes on version tags via pub.dev's GitHub OIDC integration (no stored
+# credentials). One-time setup after the first manual `dart pub publish`:
+#   1. pub.dev → droid_doctor → Admin → Automated publishing: enable GitHub
+#      Actions for jihanurrahman33/droid-doctor, tag pattern `v{{version}}`.
+#   2. GitHub → Settings → Variables → Actions: PUB_DEV_PUBLISH = true.
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+jobs:
+  publish:
+    if: vars.PUB_DEV_PUBLISH == 'true'
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1

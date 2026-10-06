@@ -1,0 +1,55 @@
+name: droid_doctor
+description: >-
+  Check a Flutter project's Android build for Gradle, Android Gradle Plugin,
+  Kotlin and JDK version problems, with annotations on the affected lines.
+author: jihanurrahman33
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  project:
+    description: Flutter project root (or its android/ directory), relative to the repository root.
+    default: .
+  fail-on-warnings:
+    description: Fail the job on warnings too, not just errors.
+    default: 'false'
+  args:
+    description: Extra arguments for `droid_doctor check`, e.g. `--java-version 17`.
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Check for Dart
+      id: dart
+      shell: bash
+      run: |
+        if command -v dart >/dev/null 2>&1; then
+          echo "found=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "found=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Set up Dart
+      if: steps.dart.outputs.found != 'true'
+      uses: dart-lang/setup-dart@v1
+
+    # GITHUB_ACTION_PATH is this action checked out at the ref the workflow
+    # asked for (`@v1`, a SHA, or the local checkout for `uses: ./`), so the
+    # installed tool always matches the action version.
+    - name: Install droid_doctor
+      shell: bash
+      run: dart pub global activate --source path "$GITHUB_ACTION_PATH" >/dev/null
+
+    - name: Check the Android build
+      shell: bash
+      env:
+        PROJECT: ${{ inputs.project }}
+        FAIL_ON_WARNINGS: ${{ inputs.fail-on-warnings }}
+        EXTRA_ARGS: ${{ inputs.args }}
+      run: |
+        flags=(--annotations --no-color)
+        if [ "$FAIL_ON_WARNINGS" = "true" ]; then flags+=(--ci); fi
+        # shellcheck disable=SC2086 # EXTRA_ARGS is intentionally word-split.
+        dart pub global run droid_doctor check -p "$PROJECT" "${flags[@]}" $EXTRA_ARGS
