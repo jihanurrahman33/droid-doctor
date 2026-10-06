@@ -3,6 +3,8 @@ description: >-
   Finds, explains and fixes Gradle, Android Gradle Plugin, Kotlin and JDK
   version mismatches in the Android build of Flutter projects.
 version: 0.3.0
+repository: https://github.com/jihanurrahman33/droid-doctor
+issue_tracker: https://github.com/jihanurrahman33/droid-doctor/issues
 topics: [android, gradle, flutter, kotlin, cli]
 
 environment:

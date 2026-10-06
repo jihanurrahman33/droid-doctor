@@ -25,8 +25,9 @@ String renderDiagnoses(
   if (diagnoses.isEmpty) {
     out
       ..writeln('No known error found in the log.')
-      ..writeln('If the build failed, please open an issue with the log so '
-          'the pattern can be added.');
+      ..writeln('If the build failed, please share the log at '
+          'https://github.com/jihanurrahman33/droid-doctor/issues so the '
+          'pattern can be added.');
     return out.toString();
   }
 

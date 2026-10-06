@@ -9,7 +9,8 @@ Future<void> main(List<String> arguments) async {
     stderr
       ..writeln('droid_doctor crashed: $error')
       ..writeln(stackTrace)
-      ..writeln('Please report this at the project issue tracker.');
+      ..writeln(
+          'Please report it at https://github.com/jihanurrahman33/droid-doctor/issues');
     exitCode = ExitCode.internal;
   }
 }
