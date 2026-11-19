@@ -54,7 +54,7 @@ void main() {
       final r = await run([
         'plan',
         '--flutter',
-        'latest',
+        '3.47',
         '-p',
         fixture('catalog_kts'),
         '--flutter-version',

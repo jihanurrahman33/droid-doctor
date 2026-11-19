@@ -4,7 +4,9 @@ import 'package:droid_doctor/droid_doctor.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-final matrix = CompatMatrix.bundled();
+import 'hermetic.dart';
+
+final matrix = snapshotMatrix();
 Version v(String s) => Version.parse(s);
 
 /// Copies a fixture into a fresh temp directory, deleted after the test.
