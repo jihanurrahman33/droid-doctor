@@ -1,5 +1,14 @@
 ## 1.0.0
 
+- A Flutter release newer than the compatibility data is now a warning, not
+  an info note: its own minimums were not checked, so a clean result could be
+  followed by a failing build. The message suggests `droid_doctor data update`.
+- Compatibility data now covers Flutter 3.10–3.50. Gradle, AGP and Kotlin
+  releases newer than the reviewed rules are reported as unknown instead of
+  being checked.
+- Fixed the weekly data-update workflow: tests that asserted exact solver
+  picks read the live data, so every refresh failed them and no pull request
+  was opened. They now use a frozen snapshot.
 - GitHub Action: `uses: jihanurrahman33/droid-doctor@v1` checks a Flutter
   project in CI and annotates the affected lines of pull requests.
 - `check --annotations` prints GitHub Actions annotations for any workflow.

@@ -6,7 +6,7 @@ version problems** in the Android build of Flutter projects, before
 
 ```console
 $ droid_doctor
-droid_doctor 0.1.0  ·  data 2026-10-06  ·  ~/code/my_app
+droid_doctor 1.0.0  ·  data 2026-11-19  ·  ~/code/my_app
 
   Flutter  3.47.2     flutter --version
   JDK      17         flutter config --jdk-dir (...)
@@ -26,8 +26,7 @@ error    Flutter 3.47 requires Android Gradle Plugin 8.11.1 or newer (found 8.7.
 ## Install
 
 ```sh
-dart pub global activate droid_doctor          # with Dart/Flutter installed
-brew install jihanurrahman33/tap/droid_doctor  # macOS/Linux, no Dart needed
+dart pub global activate droid_doctor   # with Dart/Flutter installed
 ```
 
 Or download a native binary for Linux, macOS or Windows from the
@@ -79,14 +78,14 @@ droid_doctor fix --undo           # restore the files the last fix changed
 
 ```console
 Versions:
-  Gradle  8.3 → 8.14
-  AGP     8.7.0 → 8.11.1
-  KGP     1.9.0 → 2.2.20
+  Gradle  8.3 → 8.14.7
+  AGP     8.7.0 → 8.11.2
+  KGP     1.9.0 → 2.2.21
 
 Changes:
-  android/settings.gradle.kts:22  Upgrade Android Gradle Plugin 8.7.0 → 8.11.1
+  android/settings.gradle.kts:22  Upgrade Android Gradle Plugin 8.7.0 → 8.11.2
   - id("com.android.application") version "8.7.0" apply false
-  + id("com.android.application") version "8.11.1" apply false
+  + id("com.android.application") version "8.11.2" apply false
   ...
 Apply 6 changes to 3 files? [y/N]
 ```
@@ -202,6 +201,10 @@ every rule. It's bundled into the executable so checks work offline.
 droid_doctor data show     # which data is in use, and how old it is
 droid_doctor data update   # download newer data without upgrading droid_doctor
 ```
+
+If your Flutter release is newer than the data, `check` warns that Flutter's own
+minimums were not checked instead of reporting a clean result; run
+`droid_doctor data update`.
 
 A weekly workflow refreshes it and opens a pull request:
 
