@@ -15,7 +15,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Tag matches pubspec.yaml
@@ -44,7 +44,7 @@ jobs:
     env:
       ARCHIVE: droid_doctor-${{ needs.verify.outputs.version }}-${{ matrix.target }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
       - name: Compile
@@ -70,7 +70,7 @@ jobs:
     needs: [verify, binaries]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -104,7 +104,7 @@ jobs:
       - name: Skip without a tap token
         if: env.TOKEN == ''
         run: echo "HOMEBREW_TAP_TOKEN not set; skipping the Homebrew update."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.TOKEN != ''
       - uses: dart-lang/setup-dart@v1
         if: env.TOKEN != ''
@@ -114,7 +114,7 @@ jobs:
         if: env.TOKEN != ''
         with:
           name: SHA256SUMS
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.TOKEN != ''
         with:
           repository: jihanurrahman33/homebrew-tap
