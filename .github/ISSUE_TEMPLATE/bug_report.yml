@@ -1,0 +1,38 @@
+name: Bug report
+description: droid_doctor reports a wrong result, crashes, or a fix breaks the build.
+labels: [bug, needs-repro]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you run, what did you expect, and what did you get?
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: Paste the output of `droid_doctor --version` and `flutter --version`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: Output of `droid_doctor check`
+      description: Add `--no-color`. For a `fix` problem, include `fix --dry-run` too.
+      render: text
+  - type: textarea
+    id: build
+    attributes:
+      label: Build log
+      description: If a build fails, paste the relevant part of the `flutter build apk` output.
+      render: text
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: >-
+        A minimal project, or the contents of android/settings.gradle(.kts),
+        android/app/build.gradle(.kts) and gradle-wrapper.properties. Remove anything private.

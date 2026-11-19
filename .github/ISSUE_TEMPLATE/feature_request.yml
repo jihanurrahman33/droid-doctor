@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest a check, a fix, or a change to the output.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What goes wrong in a Flutter Android build that droid_doctor should catch or fix?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+      description: The behavior you expect, with an example if you can.
+  - type: textarea
+    id: source
+    attributes:
+      label: Source
+      description: A link to the Flutter, Gradle, AGP or Kotlin documentation that states the rule, if this is a new check.

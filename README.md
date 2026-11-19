@@ -1,5 +1,9 @@
 # droid_doctor
 
+[![pub package](https://img.shields.io/pub/v/droid_doctor.svg)](https://pub.dev/packages/droid_doctor)
+[![CI](https://github.com/jihanurrahman33/droid-doctor/actions/workflows/ci.yaml/badge.svg)](https://github.com/jihanurrahman33/droid-doctor/actions/workflows/ci.yaml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jihanurrahman33/droid-doctor/blob/main/LICENSE)
+
 Finds, explains and fixes **Gradle, Android Gradle Plugin (AGP), Kotlin and JDK
 version problems** in the Android build of Flutter projects, before
 `flutter build apk` fails with a cryptic error.
@@ -226,6 +230,13 @@ dart run tool/embed_matrix.dart   # after editing data/matrix.json by hand
 
 - iOS checks (CocoaPods/SPM, deployment target).
 - Editor integration (run `check` when build files change).
+
+## Contributing
+
+Bug reports and pull requests are welcome; see
+[CONTRIBUTING.md](https://github.com/jihanurrahman33/droid-doctor/blob/main/CONTRIBUTING.md).
+Report security problems privately, as described in
+[SECURITY.md](https://github.com/jihanurrahman33/droid-doctor/blob/main/SECURITY.md).
 
 ## License
 
