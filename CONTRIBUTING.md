@@ -1,7 +1,8 @@
 # Contributing to droid_doctor
 
 Thanks for helping. Bug reports with a project or a build log that reproduces
-the problem are the most useful contribution.
+the problem are the most useful contribution. Everyone taking part is expected
+to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Setup
 
