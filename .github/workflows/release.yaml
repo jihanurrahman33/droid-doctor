@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
@@ -110,7 +110,7 @@ jobs:
         if: env.TOKEN != ''
       - run: dart pub get
         if: env.TOKEN != ''
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: env.TOKEN != ''
         with:
           name: SHA256SUMS
