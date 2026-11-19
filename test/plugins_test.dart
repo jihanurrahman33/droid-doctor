@@ -133,7 +133,7 @@ ProjectSnapshot scan(String root) => const AndroidScanner().scan(
 
 Map<String, List<String>> audit(String root) {
   final project = scan(root);
-  final auditor = PluginAuditor(project, CompatMatrix.bundled());
+  final auditor = PluginAuditor(project, snapshotMatrix());
   return {
     for (final plugin in findAndroidPlugins(root))
       plugin.name: [for (final f in auditor.audit(plugin)) f.ruleId],
@@ -171,8 +171,8 @@ void main() {
   });
 
   test('effective app SDKs come from flutter.* defaults when delegated', () {
-    final auditor = PluginAuditor(
-        scan(projectWithPlugins('modern_kts')), CompatMatrix.bundled());
+    final auditor =
+        PluginAuditor(scan(projectWithPlugins('modern_kts')), snapshotMatrix());
     expect(auditor.appMinSdk, 24);
     expect(auditor.appCompileSdk, 36);
   });
