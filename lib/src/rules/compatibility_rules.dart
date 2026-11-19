@@ -119,6 +119,8 @@ final class CompatibilityRule implements Rule {
       range.maxInclusive ? 'up to ${range.max}' : 'below ${range.max}';
 }
 
+Version _newer(Version a, Version b) => a > b ? a : b;
+
 /// Checks the minimums the project's Flutter version enforces.
 final class FlutterRequirementsRule implements Rule {
   const FlutterRequirementsRule();
@@ -132,12 +134,26 @@ final class FlutterRequirementsRule implements Rule {
     if (flutter == null) return;
     final requirements = matrix.requirementsFor(flutter);
     if (requirements == null) {
-      yield Finding(
-        ruleId: id,
-        severity: Severity.info,
-        message: 'No requirement data for Flutter ${flutter.major}.'
-            '${flutter.minor}; only toolchain compatibility was checked.',
-      );
+      final release = 'Flutter ${flutter.major}.${flutter.minor}';
+      final isNewerThanData = matrix.flutter.isNotEmpty &&
+          flutter > matrix.flutter.map((f) => f.flutter).reduce(_newer);
+      // A Flutter release newer than the data enforces minimums that were not
+      // checked, so a clean result could be followed by a failing build.
+      yield isNewerThanData
+          ? Finding(
+              ruleId: id,
+              severity: Severity.warning,
+              message: 'The compatibility data does not cover $release yet, so '
+                  'its own minimums were not checked and the build can still '
+                  'fail.',
+              fix: 'Run `droid_doctor data update`.',
+            )
+          : Finding(
+              ruleId: id,
+              severity: Severity.info,
+              message: 'No requirement data for $release; only toolchain '
+                  'compatibility was checked.',
+            );
       return;
     }
     final release = 'Flutter ${flutter.major}.${flutter.minor}';

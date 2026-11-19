@@ -1,6 +1,8 @@
 import 'package:droid_doctor/droid_doctor.dart';
 import 'package:test/test.dart';
 
+import 'hermetic.dart';
+
 Detected<Version> d(String v, [int line = 1]) =>
     Detected(Version.parse(v), location: SourceLocation('f', line));
 
@@ -34,7 +36,7 @@ ProjectSnapshot project({
       appBuildFile: 'android/app/build.gradle.kts',
     );
 
-final matrix = CompatMatrix.bundled();
+final matrix = snapshotMatrix();
 
 List<Finding> check(ProjectSnapshot p) => checkProject(p, matrix);
 
@@ -133,11 +135,19 @@ void main() {
           byRule(check(project(minSdk: 24)), 'flutter-requirements'), isEmpty);
     });
 
-    test('unknown Flutter release is reported as info', () {
+    test('a Flutter release older than the data is reported as info', () {
       final f =
           byRule(check(project(flutter: '3.5.0')), 'flutter-requirements');
       expect(f.single.severity, Severity.info);
       expect(f.single.message, contains('3.5'));
+    });
+
+    test('a Flutter release newer than the data is a warning', () {
+      final f =
+          byRule(check(project(flutter: '3.99.0')), 'flutter-requirements');
+      expect(f.single.severity, Severity.warning);
+      expect(f.single.message, contains('3.99'));
+      expect(f.single.fix, contains('data update'));
     });
   });
 
